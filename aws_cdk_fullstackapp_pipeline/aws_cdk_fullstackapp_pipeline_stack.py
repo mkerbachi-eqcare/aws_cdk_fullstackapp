@@ -1,5 +1,8 @@
 from aws_cdk import (
+    aws_s3 as s3,
     aws_codebuild as codebuild,
+    aws_codepipeline as codepipeline,
+    aws_codepipeline_actions as codepipeline_actions,
     core as cdk
 )
 
@@ -15,6 +18,8 @@ class AwsCdkFullstackappPipelineStack(cdk.Stack):
         super().__init__(scope, construct_id, **kwargs)
 
 
+
+        # Stage: Code Checkout
 
         github_checkout = codebuild.Project(
             self,
@@ -35,4 +40,65 @@ class AwsCdkFullstackappPipelineStack(cdk.Stack):
                 build_image=codebuild.LinuxBuildImage.STANDARD_5_0,
                 privileged=False
             )
+        )
+
+        code_bucket = s3.Bucket(
+            self,
+            id="cdk-code-bucket",
+            bucket_name="cdk-code-bucket",
+            block_public_access=s3.BlockPublicAccess.BLOCK_ALL,
+            encryption=s3.BucketEncryption.S3_MANAGED,
+            removal_policy=core.RemovalPolicy.DESTROY
+        )
+
+        source_output = codepipeline.Artifact()
+
+        cdk_code_s3sourceaction = codepipeline_actions.S3SourceAction(
+            action_name="cdk_code_bucket_action",
+            bucket=code_bucket,
+            bucket_key="cdk_code.zip",
+            output=source_output,
+            trigger=codepipeline_actions.S3Trigger.EVENTS,
+            variables_namespace="SourceCDKVariablesNamespace"
+        )
+
+
+
+        # Stage: Code build
+
+        build_stage = codebuild.Project(
+            self,
+            "Build code",
+            project_name="BuildCode",
+            description="Code build",
+            build_spec=codebuild.BuildSpec.from_source_filename(filename="aws_cdk_fullstackapp_pipeline/pipeline/build-buildspec.yml"),
+            environment=codebuild.BuildEnvironment(
+                build_image=codebuild.LinuxBuildImage.STANDARD_5_0,
+                privileged=False
+            )
+        )
+
+        cdk_code_codebuildaction = codepipeline_actions.CodeBuildAction(
+            action_name="CodeBuild",
+            project=build_stage,
+            input=source_output,
+            variables_namespace="BuildCDKVariablesNamespace"
+        )
+
+        ############################
+        # CodePipeline
+        ############################
+
+        pipeline = codepipeline.Pipeline(
+            self,
+            "CodePipeline",
+            pipeline_name="FullStackApp_Pipeline",
+            stages=[codepipeline.StageProps(
+                stage_name="CodeCDK",
+                actions=[cdk_code_s3sourceaction]
+            ),
+            codepipeline.StageProps(
+                stage_name="Codebuild",
+                actions=[cdk_code_codebuildaction]
+            )]
         )
