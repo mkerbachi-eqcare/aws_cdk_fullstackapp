@@ -31,4 +31,11 @@ AwsCdkFullstackappStack(app, "AwsCdkFullstackappStack",
     # For more information, see https://docs.aws.amazon.com/cdk/latest/guide/environments.html
     )
 
+
+#Pipeline
+from aws_cdk_pipeline.aws_cdk_pipeline_stack import AwsCdkPipelineStack
+
+AwsCdkPipelineStack(app, "AwsCdkPipelineStack")
+
+
 app.synth()
