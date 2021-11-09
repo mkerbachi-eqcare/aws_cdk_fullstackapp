@@ -22,15 +22,15 @@ class AwsCdkPipelineStack(cdk.Stack):
             project_name="CheckoutCode",
             description="Checkout code from Github",
             source=codebuild.Source.git_hub(
-                owner="kerbachi",
-                repo="aws-cdk-backend-api",
+                owner="mkerbachi-eqcare",
+                repo="aws_cdk_fullstackapp",
                 report_build_status=False,
                 webhook=False,
                 # webhook_filters=[codebuild.FilterGroup.in_event_of(
                 #     codebuild.EventAction.PUSH).and_branch_is(branch_name="*")
                 # ]
             ),
-            build_spec=codebuild.BuildSpec.from_source_filename(filename="pipeline/code.yml"),
+            build_spec=codebuild.BuildSpec.from_source_filename(filename="pipeline/buildspec.yml"),
             environment=codebuild.BuildEnvironment(
                 build_image=codebuild.LinuxBuildImage.STANDARD_5_0,
                 privileged=False
