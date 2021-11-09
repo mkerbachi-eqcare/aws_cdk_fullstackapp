@@ -30,7 +30,7 @@ class AwsCdkFullstackappPipelineStack(cdk.Stack):
                 #     codebuild.EventAction.PUSH).and_branch_is(branch_name="*")
                 # ]
             ),
-            build_spec=codebuild.BuildSpec.from_source_filename(filename="pipeline/buildspec.yml"),
+            build_spec=codebuild.BuildSpec.from_source_filename(filename="aws_cdk_fullstackapp_pipeline/pipeline/buildspec.yml"),
             environment=codebuild.BuildEnvironment(
                 build_image=codebuild.LinuxBuildImage.STANDARD_5_0,
                 privileged=False
